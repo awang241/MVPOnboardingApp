@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MVPInternshipApp.Server.Dto;
 using MVPInternshipApp.Server.Models;
 
 namespace MVPInternshipApp.Server.Controllers
@@ -22,14 +23,15 @@ namespace MVPInternshipApp.Server.Controllers
 
         // GET: api/Customer
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomers()
+        public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers()
         {
-            return await _context.Customers.ToListAsync();
+            var customers = await _context.Customers.ToListAsync();
+            return Ok(customers.Select(x => new CustomerDto(x)));
         }
 
         // GET: api/Customer/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomer(int id)
+        public async Task<ActionResult<CustomerDto>> GetCustomer(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
 
@@ -38,14 +40,15 @@ namespace MVPInternshipApp.Server.Controllers
                 return NotFound();
             }
 
-            return customer;
+            return new CustomerDto(customer);
         }
 
         // PUT: api/Customer/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, Customer customer)
+        public async Task<IActionResult> PutCustomer(int id, CustomerDto customerDto)
         {
+            var customer = customerDto.ToModel();
             if (id != customer.Id)
             {
                 return BadRequest();
@@ -75,12 +78,14 @@ namespace MVPInternshipApp.Server.Controllers
         // POST: api/Customer
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        public async Task<ActionResult<CustomerDto>> PostCustomer(CustomerDto customerDto)
         {
+            var customer = customerDto.ToModel();
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
+
+            return CreatedAtAction("GetCustomer", new { id = customer.Id }, new CustomerDto(customer));
         }
 
         // DELETE: api/Customer/5
