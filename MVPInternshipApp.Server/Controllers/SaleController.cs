@@ -25,7 +25,11 @@ namespace MVPInternshipApp.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<SaleResponseDto>>> GetSales()
         {
-            var sales = await _context.Sales.ToListAsync();
+            var sales = await _context.Sales
+                .Include(s => s.Product)
+                .Include(s => s.Customer)
+                .Include(s => s.Store)
+                .ToListAsync();
             return Ok(sales.Select(s => new SaleResponseDto(s)));
         }
 
@@ -33,7 +37,11 @@ namespace MVPInternshipApp.Server.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<SaleResponseDto>> GetSale(int id)
         {
-            var sale = await _context.Sales.FindAsync(id);
+            var sale = await _context.Sales
+                .Include(s => s.Product)
+                .Include(s => s.Customer)
+                .Include(s => s.Store)
+                .FirstOrDefaultAsync(s => s.Id == id);
 
             if (sale == null)
             {
@@ -86,8 +94,12 @@ namespace MVPInternshipApp.Server.Controllers
             }
             _context.Sales.Add(sale);
             await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetSale", new { id = sale.Id }, new SaleResponseDto(sale));
+            var entry = _context.Entry(sale);
+            foreach (var item in _context.Entry(sale).Navigations) {
+                item.Load();
+            }
+            var i = 1;
+            return CreatedAtAction("GetSale", new { id = sale.Id}, new SaleResponseDto(sale));
         }
 
         // DELETE: api/Sale/5
