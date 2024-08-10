@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MVPInternshipApp.Server.Dto;
 using MVPInternshipApp.Server.Models;
 
 namespace MVPInternshipApp.Server.Controllers
@@ -22,14 +23,15 @@ namespace MVPInternshipApp.Server.Controllers
 
         // GET: api/Store
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Store>>> GetStores()
+        public async Task<ActionResult<IEnumerable<StoreDto>>> GetStores()
         {
-            return await _context.Stores.ToListAsync();
+            var stores = await _context.Stores.ToListAsync();
+            return Ok(stores.Select(s => new StoreDto(s)));
         }
 
         // GET: api/Store/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Store>> GetStore(int id)
+        public async Task<ActionResult<StoreDto>> GetStore(int id)
         {
             var store = await _context.Stores.FindAsync(id);
 
@@ -38,19 +40,20 @@ namespace MVPInternshipApp.Server.Controllers
                 return NotFound();
             }
 
-            return store;
+            return new StoreDto(store);
         }
 
         // PUT: api/Store/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStore(int id, Store store)
+        public async Task<IActionResult> PutStore(int id, StoreDto storeDto)
         {
-            if (id != store.Id)
+            if (id != storeDto.Id)
             {
                 return BadRequest();
             }
 
+            var store = storeDto.ToModel();
             _context.Entry(store).State = EntityState.Modified;
 
             try
@@ -75,12 +78,13 @@ namespace MVPInternshipApp.Server.Controllers
         // POST: api/Store
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Store>> PostStore(Store store)
+        public async Task<ActionResult<StoreDto>> PostStore(StoreDto storeDto)
         {
+            var store = storeDto.ToModel();
             _context.Stores.Add(store);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetStore", new { id = store.Id }, store);
+            return CreatedAtAction("GetStore", new { id = store.Id }, new StoreDto(store));
         }
 
         // DELETE: api/Store/5

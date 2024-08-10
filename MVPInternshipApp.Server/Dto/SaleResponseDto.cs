@@ -3,10 +3,10 @@ using System.Net;
 
 namespace MVPInternshipApp.Server.Dto
 {
-    public class SaleDto
+    public class SaleResponseDto
     {
-        public SaleDto() { }
-        public SaleDto(Sale model)
+        public SaleResponseDto() { }
+        public SaleResponseDto(Sale model)
         {
             Id = model.Id;
             DateSold = model.DateSold;
