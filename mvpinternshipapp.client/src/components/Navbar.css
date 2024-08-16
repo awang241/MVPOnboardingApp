@@ -1,9 +1,26 @@
 .navbar {
-    display: grid;
+    display: flex;
     grid-template-columns: repeat(4, 1fr);
-    width: 100%;    
+    width: 100%;
+    top: 0px;
+    border: 1pt solid black;
+    background-color: #0082ff;
 }
 
 .navbar a {
-    border: 1pt solid black;
+    align-content: center;
+    background-color: #0082ff;
+    color: white;
+    width: 200px;
+    height: 50px;
+}
+
+.navbar a:hover {
+    background-color: #22a4ff;
+    color: white;
+}
+
+.navbar a:active {
+    background-color: #44c6ff;
+    color: white;
 }
