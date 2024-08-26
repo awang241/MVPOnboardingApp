@@ -1,0 +1,5 @@
+.sale-details {
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+    gap: 5px;
+}

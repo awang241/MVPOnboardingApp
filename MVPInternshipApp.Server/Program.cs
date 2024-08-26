@@ -9,11 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: allowLocalhostOrigins,
-                    policy =>
-                    {
-                        policy.WithOrigins("https://localhost:5173", "https://localhost");
-                    });
+
+options.AddDefaultPolicy(
+    builder =>
+    {
+        builder.WithOrigins("https://localhost:5173", "https://localhost").AllowAnyHeader().AllowAnyMethod();
+    });
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -35,10 +36,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors(allowLocalhostOrigins);
+app.UseCors();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireCors();
 
 app.MapFallbackToFile("/index.html");
 

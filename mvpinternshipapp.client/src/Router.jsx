@@ -1,15 +1,11 @@
 import App from './App';
-import { createBrowserRouter } from "react-router-dom"
-import { ProductTable } from './components/ProductTable';
-import DataTable from './components/DataTable';
-import routes from './Routes'
+import { createBrowserRouter } from "react-router-dom";
+import { ProductPage } from './pages/ProductPage';
+import { StorePage } from './pages/StorePage';
 
-const homeContents = (
-    <>
-        <h1 id="tableLabel">Weather forecast</h1>
-        <p>This component demonstrates fetching data from the server.</p>
-    </>
-)
+import routes from './Routes'
+import { CustomerPage } from './pages/CustomerPage';
+import { SalePage } from './pages/SalePage';
 
 const router = createBrowserRouter([
     { 
@@ -18,23 +14,23 @@ const router = createBrowserRouter([
         children: [
             {
                 path: routes.HOME,
-                element: homeContents
+                element: <a>World</a>
             },
             {
                 path: routes.PRODUCTS,
-                element: <ProductTable />
+                element: <ProductPage />
             },
             {
                 path: routes.STORES,
-                element: <><h1>ok</h1><DataTable url={"https://localhost:7065/api/Store"} /></>
+                element: <StorePage url={"https://localhost:7065/api/Store"} />
             },
             {
                 path: routes.CUSTOMERS,
-                element: <><h1>oka</h1><DataTable url={"https://localhost:7065/api/Customer"} /></>
+                element: <CustomerPage />
             },
             {
                 path: routes.SALES,
-                element: <><h1>oks</h1><DataTable url={"https://localhost:7065/api/Sale"} /></>
+                element: <SalePage />
             }
         ]
     }

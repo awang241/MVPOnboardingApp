@@ -1,73 +1,49 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import axios from 'axios';
+import { Button } from "semantic-ui-react";
+import PropTypes from 'prop-types';
 
-function getKeysOfObjectArray(array) {
-    return array.reduce((keys, obj) => {
-        if (!Array.isArray(obj)) {
-            let newKeys = new Set(Object.keys(obj));
-            return keys.union(newKeys);
-        } else return keys
-    }, new Set());
-}
-
-export default function DataTable(props) {
-    const [data, setData] = useState([]);
-    const [columns, setColumns] = useState([]);
-    const location = useLocation();
-
-    const loadCustomers = () => {
-        setData([]);
-        axios.get(props.url)
-            .then((res) => {
-                if (res.data !== undefined && Array.isArray(res.data) && res.data.every(x => typeof x === 'object')) {
-                    let a = Array.from(getKeysOfObjectArray(res.data));
-                    setColumns(a);
-                    setData(res.data);                    
-                }
-            })
-    }; 
-
+export default function DataTable({
+    headers,
+    dataCellsMapper,
+    data,
+    onClickEdit,
+    onClickDelete,
+}) {
     const createRow = (dataObj) => {
         return (
-            <>
-                {
-                    columns.map(x => <th key={x}>{dataObj[x]}</th>)
-                }
-                <th><button>Edit</button></th>
-                <th><button>Delete</button></th>
-            </>
+            <tr key={dataObj.id} >
+                {dataCellsMapper(dataObj)}
+                <td>
+                    <Button color='yellow' onClick={() => onClickEdit(dataObj)}>Edit</Button>
+
+                    <Button color='red' onClick={() => onClickDelete(dataObj)}>Delete</Button>
+                </td>
+
+            </tr>
         )
     }
-    useEffect(() => {
-        loadCustomers();
-    }, [location])
-    return (
-        <div>
-            <h2>Customers</h2>
 
-            {data === undefined || data.length === 0 ?
-                <p>Loading...</p>
-                : <table>
-                    <thead>
-                        <tr>
-                            {
-                                columns.map(x => <th key={x}>{x}</th>)
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            data.map(p => {
-                                return (
-                                    <tr key={p.id}>
-                                        {createRow(p)}
-                                    </tr>
-                                );
-                            })
-                        }
-                    </tbody>
-                </table>}
-        </div>
+    return (
+        <table className="data-table" style={{ width: '100%' }}>
+            <thead>
+                <tr>
+                    {
+                        headers.map((header) => <th key={header}>{header}</th>)
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                {
+                    data.map(dataObj => createRow(dataObj))
+                }
+            </tbody>
+        </table>
     );
+}
+
+DataTable.propTypes = {
+    headers: PropTypes.arrayOf(PropTypes.node),
+    dataCellsMapper: PropTypes.func,
+    data: PropTypes.array,
+    onClickEdit: PropTypes.func,
+    onClickDelete: PropTypes.func,
 }
