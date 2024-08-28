@@ -92,10 +92,16 @@ namespace MVPInternshipApp.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _context.Customers.Where(c => c.Id == id)
+                                                    .Include(c => c.Sales)
+                                                    .FirstOrDefaultAsync();
             if (customer == null)
             {
                 return NotFound();
+            }
+
+            if (customer.Sales.Count > 0) {
+                return StatusCode(403, "Cannot delete customer with existing sales. Delete the sales associated with this customer first");
             }
 
             _context.Customers.Remove(customer);

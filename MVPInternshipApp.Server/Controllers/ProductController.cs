@@ -91,10 +91,16 @@ namespace MVPInternshipApp.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products.Where(p => p.Id == id)
+                                                .Include(p => p.Sales)
+                                                .FirstOrDefaultAsync();
             if (product == null)
             {
                 return NotFound();
+            }
+
+            if (product.Sales.Count > 0) {
+                return StatusCode(403, "Cannot delete product with existing sales. Delete the sales associated with this product first");
             }
 
             _context.Products.Remove(product);

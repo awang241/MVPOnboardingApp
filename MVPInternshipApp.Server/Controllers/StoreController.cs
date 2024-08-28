@@ -91,10 +91,15 @@ namespace MVPInternshipApp.Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStore(int id)
         {
-            var store = await _context.Stores.FindAsync(id);
-            if (store == null)
-            {
+            var store = await _context.Stores.Where(s => s.Id == id)
+                                                .Include(s => s.Sales)
+                                                .FirstOrDefaultAsync();//.FindAsync(id);
+            if (store == null) {
                 return NotFound();
+            }
+
+            if (store.Sales.Count > 0) {
+                return StatusCode(403, "Cannot delete store with existing sales. Delete the sales associated with this store first");
             }
 
             _context.Stores.Remove(store);
