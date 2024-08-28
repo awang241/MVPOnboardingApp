@@ -1,38 +1,18 @@
 import { useState, useEffect } from "react";
-import { Confirm, Input, Label, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
+import { Confirm, Modal, ModalHeader, ModalContent, ModalActions, Button, Message } from "semantic-ui-react";
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import DataTable from "../components/DataTable";
 import './ProductPage.css';
+import { ProductDetails } from "../components/product/ProductDetails";
 
 
-function ProductDetails({ state, setState }) {
-    return (
-        <div className="product-details">
-            <Label as='p'>Name</Label>
-            <Input
-                defaultValue={state.name}
-                onChange={(e) => setState((product) => ({ ...product, name: e.target.value }))}
-            />
-            <Label as='p'>Price</Label>
-            <Input
-                label="$"
-                defaultValue={state.price}
-                type="number"
-                onChange={(e) => setState((product) => ({ ...product, price: e.target.value }))}
-            />
-        </div>
-    )
-}
 
-ProductDetails.propTypes = {
-    state: PropTypes.object,
-    setState: PropTypes.func
-}
 export function ProductPage({ endpointUrl = "/api/Product" }) {
     const [products, setProducts] = useState([]);
     const [deleteModalState, setDeleteModalState] = useState({ id: undefined, open: false });
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
+    const [toastState, setToastState] = useState({ hidden: true, success: true, message: "" });
     const [modalProduct, setModalProduct] = useState({});
 
     function closeDetailModal() {
@@ -105,10 +85,18 @@ export function ProductPage({ endpointUrl = "/api/Product" }) {
     useEffect(() => {
         loadProducts();
     }, []);
+
     return (
         <div>
             <h2>Products</h2>
             <Button primary onClick={() => openDetailModal()}>Add</Button>
+            <Message
+                className="toast floating bottom"
+                content={toastState.message}
+                hidden={toastState.hidden}
+                success={toastState.success}
+                error={!toastState.success}
+            />
 
             <DataTable
                 data={products}

@@ -1,36 +1,16 @@
 import { useState, useEffect } from "react";
-import { Confirm, Input, Label, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
+import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
+
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import DataTable from "../components/DataTable";
-
-function CustomerDetails({ state, setState }) {
-    return (
-        <div className="sale-details">
-            <Label size='large' as='p'>Name</Label>
-            <Input
-                defaultValue={state?.name}
-                onChange={(e) => setState((customer) => ({ ...customer, name: e.target.value }))}
-            />
-            <Label size='large' as='p'>Address</Label>
-            <Input
-                className="address-input"
-                defaultValue={state?.address}
-                onChange={(e) => setState((customer) => ({ ...customer,     address: e.target.value }))}
-            />
-        </div>
-    );
-}
-
-CustomerDetails.propTypes = {
-    state: PropTypes.object,
-    setState: PropTypes.func
-}
+import CustomerDetails from "../components/customer/CustomerDetails";
 
 export function CustomerPage({endpointUrl="/api/Customer"}) {
     const [customers, setCustomers] = useState([]);
     const [deleteModalState, setDeleteModalState] = useState({ id: undefined, open: false });
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
+    const [toastState, setToastState] = useState({ hidden: true, success: true, message: "" });
     const [modalCustomer, setModalCustomer] = useState({});
 
     function closeDetailModal() {
@@ -110,7 +90,13 @@ export function CustomerPage({endpointUrl="/api/Customer"}) {
         <div>
             <h2>Customers</h2>
             <Button primary onClick={() => openDetailModal()}>Add</Button>
-
+            <Message
+                className="toast floating bottom"
+                content={toastState.message}
+                hidden={toastState.hidden}
+                success={toastState.success}
+                error={!toastState.success}
+            />
             <DataTable
                 data={customers}
                 headers={["Customer Name", "Address"]}

@@ -1,111 +1,17 @@
 import { useState, useEffect } from "react";
-import { Confirm, Input, Label, Modal, ModalHeader, ModalContent, ModalActions, Button, Dropdown } from "semantic-ui-react";
-import api from '../api'
+import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
+import api from '../api';
 
-import PropTypes from 'prop-types';
-import axios from 'axios';
 import DataTable from "../components/DataTable";
 import './SalePage.css';
-const ENDPOINT_URL = "/api/Sale"
+import { SaleDetails } from "../components/sale/SaleDetails";
 
-function SaleDetails({ state, setState, isOpen }) {
-    const [customers, setCustomers] = useState([]);
-    const [products, setProducts] = useState([]);
-    const [stores, setStores] = useState([]);
-
-    useEffect(() => {
-        if (isOpen) {
-            let stillAlive = true;
-            const mapToOptions = (objArray) => {
-                return objArray.map(obj => ({
-                    key: obj.id,
-                    value: obj.id,
-                    text: obj.name,
-                }));
-            };
-            api.getCustomers().then((res) => {
-                if (stillAlive) {
-                    setCustomers(mapToOptions(res.data));
-                }
-            });
-            api.getProducts().then((res) => {
-                if (stillAlive) {
-                    setProducts(mapToOptions(res.data));
-                }
-            });
-            api.getStores().then((res) => {
-                if (stillAlive) {
-                    setStores(mapToOptions(res.data));
-                }                 
-            });
-            return () => (stillAlive = false);
-        } 
-    }, [isOpen])
-
-    return (
-        <div className="sale-details">
-            <Label size='large' as='p'>Date Sold</Label>
-            <Input
-                type="date"
-                defaultValue={state?.dateSold?.split('T')[0]}
-                onChange={(e) => setState((sale) => ({ ...sale, dateSold: e.target.value }))}
-            />
-            <Label size='large' as='p'>Products</Label>
-            <Dropdown
-                defaultValue={state?.productId}
-                placeholder='Select Product'
-                fluid
-                selection
-                options={products}
-                onChange={
-                    (e, data) => setState((sale) => {
-                        const { key, text } = products.find((product) => product.value === data.value);
-                        return { ...sale, productId: key, productName: text };
-                    })
-                }
-            />
-            <Label size='large' as='p'>Customers</Label>
-            <Dropdown
-                fluid
-                selection
-                defaultValue={state?.customerId}
-                placeholder='Select Customer'
-                options={customers}
-                onChange={
-                    (e, data) => setState((sale) => {
-                        const { key, text } = customers.find((customer) => customer.value === data.value);
-                        return { ...sale, customerId: key, customerName: text };
-                    })
-                }
-            />
-            <Label size='large' as='p'>Store</Label>
-            <Dropdown
-                fluid
-                search
-                selection
-                defaultValue={state?.storeId}
-                placeholder='Select Store'
-                options={stores}
-                onChange={
-                    (e, data) => setState((sale) => {
-                        const { key, text } = stores.find((store) => store.value === data.value);
-                        return { ...sale, storeId: key, storeName: text };
-                    })
-                }
-            />
-        </div>
-    );
-}
-
-SaleDetails.propTypes = {
-    state: PropTypes.object,
-    setState: PropTypes.func,
-    isOpen: PropTypes.bool
-}
 export function SalePage() {
     const [sales, setSales] = useState([]);
     const [deleteModalState, setDeleteModalState] = useState({ id: undefined, open: false });
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
+    const [toastState, setToastState] = useState({ hidden: true, success: true, message: "" });
+
     const [modalSale, setModalSale] = useState({});
 
     function closeDetailModal() {
@@ -139,37 +45,40 @@ export function SalePage() {
         }
     }
 
-    function closeDeleteModal() {
-        setDeleteModalState({ id: undefined, open: false });
+    function submitModalSale() {
+        setDetailModalState({ open: true, locked: true });
+        let apiPromise;
+        const isPostRequest = modalSale.id === undefined
+        apiPromise = isPostRequest ? api.createSale(modalSale) : apiPromise = api.updateSale(modalSale, modalSale.id);
+        apiPromise.then(() => {
+            loadSales();
+            const verb = isPostRequest ? 'created' : 'updated'
+            displayToast(`Sale ${verb} successfully`, true);
+        }).catch(() => displayToast("There was an error deleting the sale", false))
+            .finally(() => closeDetailModal());
     }
 
-    async function submitModalSale() {
-        let url, method;
-        if (modalSale.id === undefined) {
-            method = "post";
-            url = ENDPOINT_URL;
-        } else {
-            method = "put";
-            url = ENDPOINT_URL + `/${modalSale.id}`;
-        }
-        await axios.request({
-            url,
-            method,
-            data: { ...modalSale },
-        });
+    function deleteSale(saleId) {
+        api.deleteSale(saleId)
+            .then(() => {
+                loadSales();
+                displayToast("Sale deleted successfully", true)
+            }).catch(() => displayToast("There was an error deleting the sale", false))
+            .finally(() => setDeleteModalState({ id: undefined, open: false }));
     }
 
-    async function deleteSale(productId) {
-        await axios.delete(ENDPOINT_URL + `/${productId}`);
-    }
-
-    async function loadSales() {
-        await axios.get(ENDPOINT_URL)
+    function loadSales() {
+        api.getSales()
             .then((res) => {
                 if (res.data !== undefined && Array.isArray(res.data)) {
                     setSales(res.data);
                 }
-            })
+            }).catch((error) => console.log(error.message));
+    }
+
+    function displayToast(message, success, time = 2000) {
+        setToastState({ hidden: false, success, message });
+        setTimeout(() => setToastState({ hidden: true, success, message }), time);
     }
 
     function isModalSaleValid() {
@@ -197,7 +106,13 @@ export function SalePage() {
         <div>
             <h2>Sales</h2>
             <Button primary onClick={() => openDetailModal()}>Add</Button>
-
+            <Message
+                className="toast floating bottom"
+                content={toastState.message}
+                hidden={toastState.hidden}
+                success={toastState.success}
+                error={!toastState.success}
+            />
             <DataTable
                 data={sales}
                 headers={["Product", "Customer", "Store", "Date Sold"]}
@@ -209,15 +124,8 @@ export function SalePage() {
             <Confirm
                 content={`Are you sure you want to delete this sale?`}
                 open={deleteModalState.open}
-                onCancel={() => closeDeleteModal()}
-                onConfirm={() => {
-                    deleteSale(deleteModalState.id)
-                        .then(() => {
-                            closeDeleteModal();
-                            loadSales();
-                        });
-
-                }}
+                onCancel={() => setDeleteModalState({ id: undefined, open: false })}
+                onConfirm={() => deleteSale(deleteModalState.id)}
             />
             <Modal
                 open={detailModalState.open}
@@ -228,7 +136,7 @@ export function SalePage() {
                     <SaleDetails
                         state={modalSale}
                         setState={setModalSale}
-                        isOpen={detailModalState.open}
+                        open={detailModalState.open}
                     />
                 </ModalContent>
                 <ModalActions>
@@ -242,14 +150,7 @@ export function SalePage() {
                         disabled={detailModalState.locked || !isModalSaleValid()}
                         loading={detailModalState.locked}
                         color='green'
-                        onClick={() => {
-                            setDetailModalState({ open: true, locked: true });
-                            submitModalSale().then(() => {
-                                closeDetailModal();
-                                loadSales();
-                            });
-                        }
-                        }
+                        onClick={() => submitModalSale()}
                     >
                         Save
                     </Button>
