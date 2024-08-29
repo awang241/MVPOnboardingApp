@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
+import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button, Icon } from "semantic-ui-react";
 import api from '../api';
 
 import DataTable from "../components/DataTable";
@@ -10,7 +10,7 @@ export function SalePage() {
     const [deleteModalState, setDeleteModalState] = useState({ id: undefined, open: false });
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
     const [toastState, setToastState] = useState({ hidden: true, success: true, message: "" });
-
+    const [loading, setLoading] = useState(true);
     const [modalSale, setModalSale] = useState({});
 
     function closeDetailModal() {
@@ -67,12 +67,14 @@ export function SalePage() {
     }
 
     function loadSales() {
+        setLoading(true);
         api.getSales()
             .then((res) => {
                 if (res.data !== undefined && Array.isArray(res.data)) {
                     setSales(res.data);
                 }
-            }).catch((error) => console.log(error.message));
+            }).catch(() => displayToast("There was an error loading sales", false))
+            .finally(() => setLoading(false));
     }
 
     function displayToast(message, success, time = 2000) {
@@ -104,7 +106,7 @@ export function SalePage() {
     return (
         <div>
             <h2>Sales</h2>
-            <Button primary onClick={() => openDetailModal()}>Add</Button>
+            <Button primary onClick={() => openDetailModal()}><Icon name='add' />Add</Button>
             <Message
                 className="toast floating bottom"
                 content={toastState.message}
@@ -116,6 +118,8 @@ export function SalePage() {
                 data={sales}
                 headers={["Product", "Customer", "Store", "Date Sold"]}
                 dataCellsMapper={createCells}
+                emptyMessage="There are currently no sales."
+                loading={loading}
                 onClickEdit={openDetailModal}
                 onClickDelete={(p) => openDeleteModal(p.id)}
             />

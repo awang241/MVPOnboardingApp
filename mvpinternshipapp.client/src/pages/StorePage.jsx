@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
+import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button, Icon } from "semantic-ui-react";
 import { StoreDetails } from "../components/store/StoreDetails";
 import api from "../api";
 import DataTable from "../components/DataTable";
@@ -10,6 +10,8 @@ export function StorePage() {
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
     const [toastState, setToastState] = useState({ hidden: true, success: true, message: "" });
     const [modalStore, setModalStore] = useState({});
+    const [loading, setLoading] = useState(true);
+
 
     function closeDetailModal() {
         setModalStore({});
@@ -56,12 +58,14 @@ export function StorePage() {
     }
 
     function loadStores() {
+        setLoading(true);
         api.getStores()
             .then((res) => {
                 if (res.data !== undefined && Array.isArray(res.data)) {
                     setStores(res.data);
                 }
-            }).catch((error) => console.log(error.message));
+            }).catch(() => displayToast("There was an error loading stores", false))
+            .finally(() => setLoading(false));
     }
 
     function displayToast(message, success, time=2000) {
@@ -92,7 +96,7 @@ export function StorePage() {
     return (
         <div>
             <h2>Stores</h2>
-            <Button primary onClick={() => openDetailModal()}>Add</Button>
+            <Button primary onClick={() => openDetailModal()}><Icon name='add' />Add</Button>
             <Message
                 className="toast floating bottom"
                 content={toastState.message}
@@ -104,6 +108,8 @@ export function StorePage() {
                 data={stores}
                 headers={["Store Name", "Address"]}
                 dataCellsMapper={createCells}
+                emptyMessage="There are currently no stores."
+                loading={loading}
                 onClickEdit={openDetailModal}
                 onClickDelete={(p) => openDeleteModal(p.id)}
             />

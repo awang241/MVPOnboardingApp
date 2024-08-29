@@ -8,6 +8,9 @@ export default function Navbar() {
 
     return (
         <Menu className="navbar">
+            <Link to={routes.HOME}>
+                <MenuItem active={location.pathname === routes.HOME}>Home</MenuItem>
+            </Link>
             <Link to={routes.PRODUCTS}>
                 <MenuItem active={location.pathname === routes.PRODUCTS}>Products</MenuItem>
             </Link>

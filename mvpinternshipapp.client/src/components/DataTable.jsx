@@ -1,10 +1,12 @@
-import { Button } from "semantic-ui-react";
+import { Button, Loader } from "semantic-ui-react";
 import PropTypes from 'prop-types';
 
 export default function DataTable({
     headers,
     dataCellsMapper,
     data,
+    loading,
+    emptyMessage,
     onClickEdit,
     onClickDelete,
 }) {
@@ -21,29 +23,33 @@ export default function DataTable({
             </tr>
         )
     }
-
-    return (
-        <table className="data-table" style={{ width: '100%' }}>
-            <thead>
-                <tr>
-                    {
-                        headers.map((header) => <th key={header}>{header}</th>)
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                {
-                    data.map(dataObj => createRow(dataObj))
-                }
-            </tbody>
-        </table>
-    );
+    if (loading) {
+        return <Loader active>Loading</Loader>;
+    } else if (data.length === 0) {
+        return <p style={{ margin: "15px" }}>{emptyMessage}</p>
+    } else {
+        return (
+                <table className="data-table" style={{ width: '100%' }}>
+                    <thead>
+                        <tr>
+                            {headers.map((header) => <th key={header}>{header}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map(dataObj => createRow(dataObj))}
+                    </tbody>
+                </table>
+        );
+    }
+    
 }
 
 DataTable.propTypes = {
     headers: PropTypes.arrayOf(PropTypes.node),
     dataCellsMapper: PropTypes.func,
     data: PropTypes.array,
+    emptyMessage: PropTypes.string,
+    loading: PropTypes.bool,
     onClickEdit: PropTypes.func,
     onClickDelete: PropTypes.func,
 }

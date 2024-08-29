@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
+import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button, Icon } from "semantic-ui-react";
 
 import api from '../api';
 import DataTable from "../components/DataTable";
@@ -11,6 +11,7 @@ export function CustomerPage() {
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
     const [toastState, setToastState] = useState({ hidden: true, success: true, message: "" });
     const [modalCustomer, setModalCustomer] = useState({});
+    const [loading, setLoading] = useState(true);
 
     function closeDetailModal() {
         setModalCustomer({});
@@ -44,7 +45,7 @@ export function CustomerPage() {
             const verb = isPostRequest ? 'created' : 'updated'
             displayToast(`Customer ${verb} successfully`, true);
         }).catch(() => displayToast("There was an error deleting the customer", false))
-            .finally(() => closeDetailModal());
+        .finally(() => closeDetailModal());
     }
 
     function deleteCustomer(customerId) {
@@ -57,12 +58,14 @@ export function CustomerPage() {
     }
 
     function loadCustomers() {
+        setLoading(true);
         api.getCustomers()
             .then((res) => {
                 if (res.data !== undefined && Array.isArray(res.data)) {
                     setCustomers(res.data);
                 }
-            }).catch((error) => console.log(error.message));
+            }).catch(() => displayToast("There was an error loading customers", false))
+            .finally(() => setLoading(false));
     }
 
     function displayToast(message, success, time = 2000) {
@@ -91,7 +94,7 @@ export function CustomerPage() {
     return (
         <div>
             <h2>Customers</h2>
-            <Button primary onClick={() => openDetailModal()}>Add</Button>
+            <Button primary onClick={() => openDetailModal()}><Icon name='add' />Add</Button>
             <Message
                 className="toast floating bottom"
                 content={toastState.message}
@@ -103,6 +106,8 @@ export function CustomerPage() {
                 data={customers}
                 headers={["Customer Name", "Address"]}
                 dataCellsMapper={createCells}
+                emptyMessage="There are currently no customers."
+                loading={loading}
                 onClickEdit={openDetailModal}
                 onClickDelete={(p) => openDeleteModal(p.id)}
             />

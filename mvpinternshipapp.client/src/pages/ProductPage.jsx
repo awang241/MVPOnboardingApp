@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Confirm, Modal, ModalHeader, ModalContent, ModalActions, Button, Message } from "semantic-ui-react";
+import { Confirm, Modal, ModalHeader, ModalContent, ModalActions, Button, Message, Icon } from "semantic-ui-react";
 import api from '../api';
 import DataTable from "../components/DataTable";
 import { ProductDetails } from "../components/product/ProductDetails";
@@ -12,6 +12,8 @@ export function ProductPage() {
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
     const [toastState, setToastState] = useState({ hidden: true, success: true, message: "" });
     const [modalProduct, setModalProduct] = useState({});
+    const [loading, setLoading] = useState(true);
+
 
     function closeDetailModal() {
         setModalProduct({});
@@ -58,12 +60,14 @@ export function ProductPage() {
     }
 
     function loadProducts() {
+        setLoading(true);
         api.getProducts()
             .then((res) => {
                 if (res.data !== undefined && Array.isArray(res.data)) {
                     setProducts(res.data);
                 }
-            }).catch((error) => console.log(error.message));
+            }).catch(() => displayToast("There was an error loading products", false))
+            .finally(() => setLoading(false));
     }
 
     function displayToast(message, success, time = 2000) {
@@ -93,7 +97,7 @@ export function ProductPage() {
     return (
         <div>
             <h2>Products</h2>
-            <Button primary onClick={() => openDetailModal()}>Add</Button>
+            <Button primary onClick={() => openDetailModal()}><Icon name='add' />Add</Button>
             <Message
                 className="toast floating bottom"
                 content={toastState.message}
@@ -106,6 +110,8 @@ export function ProductPage() {
                 data={products}
                 headers={["Product Name", "Price"]}
                 dataCellsMapper={createCells}
+                emptyMessage="There are currently no products."
+                loading={loading}
                 onClickEdit={openDetailModal}
                 onClickDelete={(p) => openDeleteModal(p.id)}    
             />

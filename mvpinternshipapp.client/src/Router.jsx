@@ -6,6 +6,7 @@ import { StorePage } from './pages/StorePage';
 import routes from './Routes'
 import { CustomerPage } from './pages/CustomerPage';
 import { SalePage } from './pages/SalePage';
+import { HomePage } from './pages/HomePage';
 
 const router = createBrowserRouter([
     { 
@@ -14,7 +15,7 @@ const router = createBrowserRouter([
         children: [
             {
                 path: routes.HOME,
-                element: <a>World</a>
+                element: <HomePage/>
             },
             {
                 path: routes.PRODUCTS,
