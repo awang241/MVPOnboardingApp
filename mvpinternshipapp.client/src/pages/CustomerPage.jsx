@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
 
-import PropTypes from 'prop-types';
-import axios from 'axios';
+import api from '../api';
 import DataTable from "../components/DataTable";
 import CustomerDetails from "../components/customer/CustomerDetails";
 
-export function CustomerPage({endpointUrl="/api/Customer"}) {
+export function CustomerPage() {
     const [customers, setCustomers] = useState([]);
     const [deleteModalState, setDeleteModalState] = useState({ id: undefined, open: false });
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
@@ -35,37 +34,40 @@ export function CustomerPage({endpointUrl="/api/Customer"}) {
         }
     }
 
-    function closeDeleteModal() {
-        setDeleteModalState({ id: undefined, open: false });
+    function submitModalCustomer() {
+        setDetailModalState({ open: true, locked: true });
+        let apiPromise;
+        const isPostRequest = modalCustomer.id === undefined
+        apiPromise = isPostRequest ? api.createCustomer(modalCustomer) : apiPromise = api.updateCustomer(modalCustomer, modalCustomer.id);
+        apiPromise.then(() => {
+            loadCustomers();
+            const verb = isPostRequest ? 'created' : 'updated'
+            displayToast(`Customer ${verb} successfully`, true);
+        }).catch(() => displayToast("There was an error deleting the customer", false))
+            .finally(() => closeDetailModal());
     }
 
-    async function submitModalCustomer() {
-        let url, method;
-        if (modalCustomer.id === undefined) {
-            method = "post";
-            url = endpointUrl;
-        } else {
-            method = "put";
-            url = endpointUrl + `/${modalCustomer.id}`;
-        }
-        await axios.request({
-            url,
-            method,
-            data: { ...modalCustomer },
-        });
+    function deleteCustomer(customerId) {
+        api.deleteCustomer(customerId)
+            .then(() => {
+                loadCustomers();
+                displayToast("Customer deleted successfully", true)
+            }).catch(() => displayToast("There was an error deleting the customer", false))
+            .finally(() => setDeleteModalState({ id: undefined, open: false }));
     }
 
-    async function deleteCustomer(customerId) {
-        await axios.delete(endpointUrl + `/${customerId}`);
-    }
-
-    async function loadCustomer() {
-        await axios.get(endpointUrl)
+    function loadCustomers() {
+        api.getCustomers()
             .then((res) => {
                 if (res.data !== undefined && Array.isArray(res.data)) {
                     setCustomers(res.data);
                 }
-            })
+            }).catch((error) => console.log(error.message));
+    }
+
+    function displayToast(message, success, time = 2000) {
+        setToastState({ hidden: false, success, message });
+        setTimeout(() => setToastState({ hidden: true, success, message }), time);
     }
 
     function isModalCustomerValid() {
@@ -84,7 +86,7 @@ export function CustomerPage({endpointUrl="/api/Customer"}) {
         );
     }
     useEffect(() => {
-        loadCustomer();
+        loadCustomers();
     }, []);
     return (
         <div>
@@ -108,15 +110,8 @@ export function CustomerPage({endpointUrl="/api/Customer"}) {
             <Confirm
                 content={`Are you sure you want to delete this customer?`}
                 open={deleteModalState.open}
-                onCancel={() => closeDeleteModal()}
-                onConfirm={() => {
-                    deleteCustomer(deleteModalState.id)
-                        .then(() => {
-                            closeDeleteModal();
-                            loadCustomer();
-                        });
-
-                }}
+                onCancel={() => setDeleteModalState({ open: false, id: undefined })}
+                onConfirm={() => deleteCustomer(deleteModalState.id) }
             />
             <Modal
                 open={detailModalState.open}
@@ -140,14 +135,7 @@ export function CustomerPage({endpointUrl="/api/Customer"}) {
                         disabled={detailModalState.locked || !isModalCustomerValid()}
                         loading={detailModalState.locked}
                         color='green'
-                        onClick={() => {
-                            setDetailModalState({ open: true, locked: true });
-                            submitModalCustomer().then(() => {
-                                closeDetailModal();
-                                loadCustomer();
-                            });
-                        }
-                        }
+                        onClick={() => submitModalCustomer()}
                     >
                         Save
                     </Button>
@@ -155,8 +143,4 @@ export function CustomerPage({endpointUrl="/api/Customer"}) {
             </Modal>
         </div>
     );
-}
-
-CustomerPage.propTypes = {
-    endpointUrl: PropTypes.string,
 }

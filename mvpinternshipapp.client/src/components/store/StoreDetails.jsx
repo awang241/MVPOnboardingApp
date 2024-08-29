@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 export function StoreDetails({ state, setState }) {
     return (
-        <div className="store-details">
+        <div className="detail-grid">
             <Label size='large' as='p'>Name</Label>
             <Input
                 defaultValue={state?.name}

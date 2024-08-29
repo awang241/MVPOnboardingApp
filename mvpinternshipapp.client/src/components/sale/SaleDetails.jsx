@@ -66,7 +66,7 @@ export function SaleDetails({ state, setState, open }) {
     }
 
     return (
-        <div className="sale-details">
+        <div className="detail-grid">
             <Label size='large' as='p'>Date Sold</Label>
             <Input
                 defaultValue={state?.dateSold?.split('T')[0]}

@@ -3,7 +3,6 @@ import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Butto
 import api from '../api';
 
 import DataTable from "../components/DataTable";
-import './SalePage.css';
 import { SaleDetails } from "../components/sale/SaleDetails";
 
 export function SalePage() {

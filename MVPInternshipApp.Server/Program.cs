@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using MVPInternshipApp.Server.Models;
 
-String allowLocalhostOrigins = "_allowLocalhostOrigins";
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -19,10 +17,11 @@ options.AddDefaultPolicy(
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+var connString = Environment.GetEnvironmentVariable("SQLCONNSTR_DefaultConnectionString") ?? builder.Configuration.GetConnectionString("LocalDBConnectionString");
 builder.Services.AddDbContext<SalesprojectContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString"))
+    options.UseSqlServer(connString)
 );
-
+builder.Configuration.AddEnvironmentVariables();
 var app = builder.Build();
 
 app.UseDefaultFiles();
@@ -40,7 +39,6 @@ app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers().RequireCors();
-
 app.MapFallbackToFile("/index.html");
 
 app.Run();

@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { Confirm, Modal, ModalHeader, ModalContent, ModalActions, Button, Message } from "semantic-ui-react";
-import PropTypes from 'prop-types';
-import axios from 'axios';
+import api from '../api';
 import DataTable from "../components/DataTable";
-import './ProductPage.css';
 import { ProductDetails } from "../components/product/ProductDetails";
 
 
 
-export function ProductPage({ endpointUrl = "/api/Product" }) {
+export function ProductPage() {
     const [products, setProducts] = useState([]);
     const [deleteModalState, setDeleteModalState] = useState({ id: undefined, open: false });
     const [detailModalState, setDetailModalState] = useState({ open: false, locked: false });
@@ -37,41 +35,47 @@ export function ProductPage({ endpointUrl = "/api/Product" }) {
         }
     }
 
-    function closeDeleteModal() {
-        setDeleteModalState({ id: undefined, open: false });
+    function submitModalProduct() {
+        setDetailModalState({ open: true, locked: true });
+        let apiPromise;
+        const isPostRequest = modalProduct.id === undefined
+        apiPromise = isPostRequest ? api.createProduct(modalProduct) : apiPromise = api.updateProduct(modalProduct, modalProduct.id);
+        apiPromise.then(() => {
+            loadProducts();
+            const verb = isPostRequest ? 'created' : 'updated'
+            displayToast(`Product ${verb} successfully`, true);
+        }).catch(() => displayToast("There was an error deleting the product", false))
+            .finally(() => closeDetailModal());
     }
 
-    async function submitModalProduct() {
-        let url, method;
-        if (modalProduct.id === undefined) {
-            method = "post";
-            url = endpointUrl;
-        } else {
-            method = "put";
-            url = endpointUrl  + `/${modalProduct.id}`;
-        }
-        await axios.request({
-            url,
-            method,
-            data: { ...modalProduct },
-        });
+    function deleteProduct(productId) {
+        api.deleteProduct(productId)
+            .then(() => {
+                loadProducts();
+                displayToast("Product deleted successfully", true)
+            }).catch(() => displayToast("There was an error deleting the product", false))
+            .finally(() => setDeleteModalState({ id: undefined, open: false }));
     }
 
-    async function deleteProduct(productId) {
-        await axios.delete(endpointUrl + `/${productId}`);
-    }
-
-    async function loadProducts() {
-        await axios.get(endpointUrl)
+    function loadProducts() {
+        api.getProducts()
             .then((res) => {
                 if (res.data !== undefined && Array.isArray(res.data)) {
                     setProducts(res.data);
                 }
-            })
+            }).catch((error) => console.log(error.message));
+    }
+
+    function displayToast(message, success, time = 2000) {
+        setToastState({ hidden: false, success, message });
+        setTimeout(() => setToastState({ hidden: true, success, message }), time);
     }
 
     function isModalProductValid() {
-        return modalProduct.name !== undefined && modalProduct.name !== "" && modalProduct.price !== undefined && modalProduct.price > 0;
+        return modalProduct.name !== undefined
+            && modalProduct.name !== ""
+            && modalProduct.price !== undefined
+            && modalProduct.price > 0;
     }
 
     function createCells(product) {
@@ -109,15 +113,8 @@ export function ProductPage({ endpointUrl = "/api/Product" }) {
             <Confirm
                 content={`Are you sure you want to delete this product?`}
                 open={deleteModalState.open}
-                onCancel={() => closeDeleteModal()}
-                onConfirm={() => {
-                    deleteProduct(deleteModalState.id)
-                        .then(() => {
-                            closeDeleteModal();
-                            loadProducts();
-                        });
-                    
-                }}
+                onCancel={() => setDeleteModalState({ id: undefined, open: false })}
+                onConfirm={() => deleteProduct(deleteModalState.id)}
             />
             <Modal
                 open={detailModalState.open}
@@ -133,7 +130,8 @@ export function ProductPage({ endpointUrl = "/api/Product" }) {
                 <ModalActions>
                     <Button
                         disabled={detailModalState.locked}
-                        onClick={() => closeDetailModal()} color='grey'
+                        onClick={() => closeDetailModal()}
+                        color='grey'
                     >
                         Cancel
                     </Button>
@@ -141,14 +139,7 @@ export function ProductPage({ endpointUrl = "/api/Product" }) {
                         disabled={detailModalState.locked || !isModalProductValid()}
                         loading={detailModalState.locked}
                         color='green'
-                        onClick={() => {
-                                setDetailModalState({ open: true, locked: true });
-                                submitModalProduct().then(() => {
-                                    closeDetailModal();
-                                    loadProducts();
-                                });
-                            }
-                        }
+                        onClick={() => submitModalProduct()}
                     >
                         Save
                     </Button>
@@ -156,8 +147,4 @@ export function ProductPage({ endpointUrl = "/api/Product" }) {
             </Modal>  
         </div>
     );
-}
-
-ProductPage.propTypes = {
-    endpointUrl: PropTypes.string,
 }

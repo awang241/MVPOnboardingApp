@@ -2,10 +2,7 @@ import { useState, useEffect } from "react";
 import { Confirm, Message, Modal, ModalHeader, ModalContent, ModalActions, Button } from "semantic-ui-react";
 import { StoreDetails } from "../components/store/StoreDetails";
 import api from "../api";
-
-
 import DataTable from "../components/DataTable";
-import './StorePage.css';
 
 export function StorePage() {
     const [stores, setStores] = useState([]);
