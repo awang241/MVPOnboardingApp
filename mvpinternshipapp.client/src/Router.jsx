@@ -23,7 +23,7 @@ const router = createBrowserRouter([
             },
             {
                 path: routes.STORES,
-                element: <StorePage url={"https://localhost:7065/api/Store"} />
+                element: <StorePage />
             },
             {
                 path: routes.CUSTOMERS,

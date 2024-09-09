@@ -9,38 +9,51 @@ export function SaleDetails({ state, setState, open }) {
     const [products, setProducts] = useState([]);
     const [stores, setStores] = useState([]);
 
-    useEffect(() => {
-        if (open) {
-            let stillAlive = true;
-            const mapToOptions = (objArray) => {
-                return objArray.map(obj => ({
-                    key: obj.id,
-                    value: obj.id,
-                    text: obj.name,
-                }));
-            };
-            api.getCustomers().then((res) => {
+    const loadData = () => {
+        let stillAlive = true;
+        const mapToOptions = (objArray) => {
+            return objArray.map(obj => ({
+                key: obj.id,
+                value: obj.id,
+                text: obj.name,
+            }));
+        };
+        api.getCustomers()
+            .then((res) => {
                 if (stillAlive) {
                     setCustomers(mapToOptions(res.data));
                 }
+            }).catch((e) => {
+                console.log(e)
             });
-            api.getProducts().then((res) => {
+        api.getProducts()
+            .then((res) => {
                 if (stillAlive) {
                     setProducts(mapToOptions(res.data));
                 }
+            }).catch((e) => {
+                console.log(e)
             });
-            api.getStores().then((res) => {
+        api.getStores()
+            .then((res) => {
                 if (stillAlive) {
                     setStores(mapToOptions(res.data));
                 }
+            }).catch((e) => {
+                console.log(e)
             });
-            return () => (stillAlive = false);
+        return () => (stillAlive = false);
+    }
+
+    useEffect(() => {
+        if (open) {
+            return loadData();
         }
     }, [open])
 
     const setProduct = (productId) => {
         const { key, text } = products.find((product) => product.value === productId);
-        if (Number.isInteger(key) && text !== undefined) {
+        if (isValidIdAndStringValue(key, text)) {
             setState((sale) => ({ ...sale, productId: key, productName: text }) );
         } else {
             console.log(`Error setting product with id ${key} and name ${text}`);
@@ -49,7 +62,7 @@ export function SaleDetails({ state, setState, open }) {
 
     const setCustomer = (customerId) => {
         const { key, text } = customers.find((customer) => customer.value === customerId);
-        if (Number.isInteger(key) && text !== undefined) {
+        if (isValidIdAndStringValue(key, text)) {
             setState((sale) => ({ ...sale, customerId: key, customerName: text }));
         } else {
             console.log(`Error setting customer with id ${key} and name ${text}`);
@@ -58,12 +71,14 @@ export function SaleDetails({ state, setState, open }) {
 
     const setStore = (storeId) => {
         const { key, text } = stores.find((store) => store.value === storeId);
-        if (Number.isInteger(key) && text !== undefined) {
+        if (isValidIdAndStringValue(key, text)) {
             setState((sale) => ({ ...sale, storeId: key, storeName: text }));
         } else {
             console.log(`Error setting store with id ${key} and name ${text}`);
         }
     }
+
+    const isValidIdAndStringValue = (id, value) => Number.isInteger(id) && value !== undefined;
 
     return (
         <div className="detail-grid">
