@@ -13,12 +13,12 @@ export function CustomerPage() {
     const [modalCustomer, setModalCustomer] = useState({});
     const [loading, setLoading] = useState(true);
 
-    function closeDetailModal() {
+    const closeDetailModal = () => {
         setModalCustomer({});
         setDetailModalState({ open: false, locked: false });
     }
 
-    function openDetailModal(customer = {}) {
+    const openDetailModal = (customer = {}) => {
         if (customer.id !== undefined) {
             setModalCustomer({ id: customer.id, name: customer.name, address: customer.address })
         } else {
@@ -27,7 +27,7 @@ export function CustomerPage() {
         setDetailModalState({ open: true, locked: false });
     }
 
-    function openDeleteModal(customerId) {
+    const openDeleteModal = (customerId) => {
         if (Number.isInteger(customerId)) {
             setDeleteModalState({ id: customerId, open: true });
         } else {
@@ -35,7 +35,7 @@ export function CustomerPage() {
         }
     }
 
-    function submitModalCustomer() {
+    const submitModalCustomer= () => {
         setDetailModalState({ open: true, locked: true });
         let apiPromise;
         const isPostRequest = modalCustomer.id === undefined
@@ -48,7 +48,7 @@ export function CustomerPage() {
         .finally(() => closeDetailModal());
     }
 
-    function deleteCustomer(customerId) {
+    const deleteCustomer = (customerId) => {
         api.deleteCustomer(customerId)
             .then(() => {
                 loadCustomers();
@@ -57,7 +57,7 @@ export function CustomerPage() {
             .finally(() => setDeleteModalState({ id: undefined, open: false }));
     }
 
-    function loadCustomers() {
+    const loadCustomers = () => {
         setLoading(true);
         api.getCustomers()
             .then((res) => {
@@ -68,19 +68,19 @@ export function CustomerPage() {
             .finally(() => setLoading(false));
     }
 
-    function displayToast(message, success, time = 2000) {
+    const displayToast = (message, success, time = 2000) => {
         setToastState({ hidden: false, success, message });
         setTimeout(() => setToastState({ hidden: true, success, message }), time);
     }
 
-    function isModalCustomerValid() {
+    const isModalCustomerValid = () => {
         return modalCustomer.name !== undefined
             && modalCustomer.name !== ""
             && modalCustomer.address !== undefined
             && modalCustomer.address !== "";
     }
 
-    function createCells(customer) {
+    const createCells = (customer) => {
         return (
             <>
                 <td>{customer.name}</td>

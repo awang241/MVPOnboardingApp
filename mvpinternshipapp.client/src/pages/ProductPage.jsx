@@ -15,12 +15,12 @@ export function ProductPage() {
     const [loading, setLoading] = useState(true);
 
 
-    function closeDetailModal() {
+    const closeDetailModal = () => {
         setModalProduct({});
         setDetailModalState({ open: false, locked: false });
     }
 
-    function openDetailModal(product = {}) {
+    const openDetailModal =(product = {}) => {
         if (product.id !== undefined) {
             setModalProduct({ id: product.id, name: product.name, price: product.price })
         } else {
@@ -29,7 +29,7 @@ export function ProductPage() {
         setDetailModalState({ open: true, locked: false });
     }
 
-    function openDeleteModal(productId) {
+    const openDeleteModal = (productId) => {
         if (Number.isInteger(productId)) {
             setDeleteModalState({ id: productId, open: true });
         } else {
@@ -37,7 +37,7 @@ export function ProductPage() {
         }
     }
 
-    function submitModalProduct() {
+    const submitModalProduct = () => {
         setDetailModalState({ open: true, locked: true });
         let apiPromise;
         const isPostRequest = modalProduct.id === undefined
@@ -50,7 +50,7 @@ export function ProductPage() {
             .finally(() => closeDetailModal());
     }
 
-    function deleteProduct(productId) {
+    const deleteProduct = (productId) => {
         api.deleteProduct(productId)
             .then(() => {
                 loadProducts();
@@ -59,7 +59,7 @@ export function ProductPage() {
             .finally(() => setDeleteModalState({ id: undefined, open: false }));
     }
 
-    function loadProducts() {
+    const loadProducts = () => {
         setLoading(true);
         api.getProducts()
             .then((res) => {
@@ -70,19 +70,19 @@ export function ProductPage() {
             .finally(() => setLoading(false));
     }
 
-    function displayToast(message, success, time = 2000) {
+    const displayToast = (message, success, time = 2000) => {
         setToastState({ hidden: false, success, message });
         setTimeout(() => setToastState({ hidden: true, success, message }), time);
     }
 
-    function isModalProductValid() {
+    const isModalProductValid = () => {
         return modalProduct.name !== undefined
             && modalProduct.name !== ""
             && modalProduct.price !== undefined
             && modalProduct.price > 0;
     }
 
-    function createCells(product) {
+    const createCells = (product) => {
         return (
             <>
                 <td>{product.name}</td>

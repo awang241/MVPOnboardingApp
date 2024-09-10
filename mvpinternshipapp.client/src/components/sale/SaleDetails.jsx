@@ -9,7 +9,7 @@ export function SaleDetails({ state, setState, open }) {
     const [products, setProducts] = useState([]);
     const [stores, setStores] = useState([]);
 
-    const loadData = () => {
+    const loadDataAndGetCleanupHandler = () => {
         let stillAlive = true;
         const mapToOptions = (objArray) => {
             return objArray.map(obj => ({
@@ -47,7 +47,8 @@ export function SaleDetails({ state, setState, open }) {
 
     useEffect(() => {
         if (open) {
-            return loadData();
+            const handler = loadDataAndGetCleanupHandler();
+            return handler;
         }
     }, [open])
 

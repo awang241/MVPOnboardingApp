@@ -13,12 +13,12 @@ export function SalePage() {
     const [loading, setLoading] = useState(true);
     const [modalSale, setModalSale] = useState({});
 
-    function closeDetailModal() {
+    const closeDetailModal = () => {
         setModalSale({});
         setDetailModalState({ open: false, locked: false });
     }
 
-    function openDetailModal(sale = {}) {
+    const openDetailModal = (sale = {}) => {
         if (sale.id !== undefined) {
             setModalSale({ ...sale })
         } else {
@@ -36,7 +36,7 @@ export function SalePage() {
         setDetailModalState({ open: true, locked: false });
     }
 
-    function openDeleteModal(saleId) {
+    const openDeleteModal = (saleId) => {
         if (Number.isInteger(saleId)) {
             setDeleteModalState({ id: saleId, open: true });
         } else {
@@ -44,7 +44,7 @@ export function SalePage() {
         }
     }
 
-    function submitModalSale() {
+    const submitModalSale = () => {
         setDetailModalState({ open: true, locked: true });
         let apiPromise;
         const isPostRequest = modalSale.id === undefined
@@ -57,7 +57,7 @@ export function SalePage() {
             .finally(() => closeDetailModal());
     }
 
-    function deleteSale(saleId) {
+    const deleteSale = (saleId) => {
         api.deleteSale(saleId)
             .then(() => {
                 loadSales();
@@ -66,7 +66,7 @@ export function SalePage() {
             .finally(() => setDeleteModalState({ id: undefined, open: false }));
     }
 
-    function loadSales() {
+    const loadSales = () => {
         setLoading(true);
         api.getSales()
             .then((res) => {
@@ -77,12 +77,12 @@ export function SalePage() {
             .finally(() => setLoading(false));
     }
 
-    function displayToast(message, success, time = 2000) {
+    const displayToast = (message, success, time = 2000) => {
         setToastState({ hidden: false, success, message });
         setTimeout(() => setToastState({ hidden: true, success, message }), time);
     }
 
-    function isModalSaleValid() {
+    const isModalSaleValid = () => {
         return modalSale.dateSold !== undefined
             && modalSale.dateSold !== ""
             && Number.isInteger(modalSale.customerId)
@@ -90,7 +90,7 @@ export function SalePage() {
             && Number.isInteger(modalSale.storeId)
     }
 
-    function createCells(sale) {
+    const createCells = (sale) => {
         return (
             <>
                 <td>{sale.productName}</td>

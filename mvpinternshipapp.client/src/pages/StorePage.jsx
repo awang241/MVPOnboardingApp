@@ -13,12 +13,12 @@ export function StorePage() {
     const [loading, setLoading] = useState(true);
 
 
-    function closeDetailModal() {
+    const closeDetailModal = () => {
         setModalStore({});
         setDetailModalState({ open: false, locked: false });
     }
 
-    function openDetailModal(store = {}) {
+    const openDetailModal = (store = {}) => {
         if (store.id !== undefined) {
             setModalStore({ id: store.id, name: store.name, address: store.address })
         } else {
@@ -27,7 +27,7 @@ export function StorePage() {
         setDetailModalState({ open: true, locked: false });
     }
 
-    function openDeleteModal(storeId) {
+    const openDeleteModal = (storeId) => {
         if (Number.isInteger(storeId)) {
             setDeleteModalState({ id: storeId, open: true });
         } else {
@@ -35,7 +35,7 @@ export function StorePage() {
         }
     }
 
-    function submitModalStore() {
+    const submitModalStore = () => {
         setDetailModalState({ open: true, locked: true });
         let apiPromise;
         const isPostRequest = modalStore.id === undefined
@@ -48,7 +48,7 @@ export function StorePage() {
             .finally(() => closeDetailModal());
     }
 
-    function deleteStore(productId) {
+    const deleteStore = (productId) => {
         api.deleteStore(productId)
             .then(() => {
                 loadStores();
@@ -57,7 +57,7 @@ export function StorePage() {
             .finally(() => setDeleteModalState({ id: undefined, open: false }));
     }
 
-    function loadStores() {
+    const loadStores = () => {
         setLoading(true);
         api.getStores()
             .then((res) => {
@@ -68,19 +68,19 @@ export function StorePage() {
             .finally(() => setLoading(false));
     }
 
-    function displayToast(message, success, time=2000) {
+    const displayToast = (message, success, time=2000) => {
         setToastState({ hidden: false, success, message });
         setTimeout(() => setToastState({ hidden: true, success, message }), time);
     }
 
-    function isModalStoreValid() {
+    const isModalStoreValid = () => {
         return modalStore.name !== undefined
             && modalStore.name !== ""
             && modalStore.address !== undefined
             && modalStore.address !== "";
     }
 
-    function createCells(product) {
+    const createCells = (product) => {
         return (
             <>
                 <td>{product.name}</td>

@@ -23,12 +23,14 @@ export default function DataTable({
             </tr>
         )
     }
-    if (loading) {
-        return <Loader active>Loading</Loader>;
-    } else if (data.length === 0) {
-        return <p style={{ margin: "15px" }}>{emptyMessage}</p>
-    } else {
-        return (
+
+    const renderContents = () => {
+        if (loading) {
+            return <Loader active>Loading</Loader>;
+        } else if (data.length === 0) {
+            return <p style={{ margin: "15px" }}>{emptyMessage}</p>
+        } else {
+            return (
                 <table className="data-table" style={{ width: '100%' }}>
                     <thead>
                         <tr>
@@ -39,9 +41,14 @@ export default function DataTable({
                         {data.map(dataObj => createRow(dataObj))}
                     </tbody>
                 </table>
-        );
+            );
+        }
     }
-    
+    return (
+        <>
+            {renderContents()}
+        </>
+    );
 }
 
 DataTable.propTypes = {
