@@ -1,11 +1,26 @@
 ﻿#root {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem;
     text-align: center;
+    height: 100%;
+    width: 100%;
+    
 }
 
 th, td {
     padding-left: 1rem;
     padding-right: 1rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+    gap: 5px;
+}
+
+.toast.floating.bottom {
+    width: auto; 
+    margin: auto;
+    position: fixed; 
+    left: 50%; 
+    bottom: 25px; 
+    transform: translate(-50%, 0%);
 }

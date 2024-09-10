@@ -1,0 +1,8 @@
+.navbar a {
+    width: 200px;
+    font-size: 12pt;
+}
+
+.navbar a:hover {
+    background-color: #f8f8f8;
+}

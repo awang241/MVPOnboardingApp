@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MVPInternshipApp.Server.Dto;
 using MVPInternshipApp.Server.Models;
 
 namespace MVPInternshipApp.Server.Controllers
@@ -22,51 +23,65 @@ namespace MVPInternshipApp.Server.Controllers
 
         // GET: api/Store
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Store>>> GetStores()
+        public async Task<ActionResult<IEnumerable<StoreDto>>> GetStores()
         {
-            return await _context.Stores.ToListAsync();
+            try {
+                var stores = await _context.Stores.ToListAsync();
+                return Ok(stores.Select(s => new StoreDto(s)));
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         // GET: api/Store/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Store>> GetStore(int id)
+        public async Task<ActionResult<StoreDto>> GetStore(int id)
         {
-            var store = await _context.Stores.FindAsync(id);
-
-            if (store == null)
-            {
-                return NotFound();
+            if (id < 0) {
+                return BadRequest();
             }
 
-            return store;
+            try {
+                var store = await _context.Stores.FindAsync(id);
+
+                if (store == null) {
+                    return NotFound();
+                }
+                return new StoreDto(store);
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.Message);
+            }
+            
         }
 
         // PUT: api/Store/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStore(int id, Store store)
+        public async Task<IActionResult> PutStore(int id, StoreDto storeDto)
         {
-            if (id != store.Id)
+            if (id < 0 || storeDto == null || id != storeDto.Id)
             {
                 return BadRequest();
             }
 
+            var store = storeDto.ToModel();
             _context.Entry(store).State = EntityState.Modified;
 
-            try
-            {
+            try {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StoreExists(id))
-                {
+            catch (DbUpdateConcurrencyException) {
+                if (!StoreExists(id)) {
                     return NotFound();
                 }
-                else
-                {
+                else {
                     throw;
                 }
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.Message);
             }
 
             return NoContent();
@@ -75,28 +90,49 @@ namespace MVPInternshipApp.Server.Controllers
         // POST: api/Store
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Store>> PostStore(Store store)
+        public async Task<ActionResult<StoreDto>> PostStore(StoreDto storeDto)
         {
+            if (storeDto == null) {
+                return BadRequest();
+            }
+            var store = storeDto.ToModel();
             _context.Stores.Add(store);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetStore", new { id = store.Id }, store);
+            try {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.Message);
+            }
+            return CreatedAtAction("GetStore", new { id = store.Id }, new StoreDto(store));
         }
 
         // DELETE: api/Store/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStore(int id)
         {
-            var store = await _context.Stores.FindAsync(id);
-            if (store == null)
-            {
+            if (id < 0) {
+                return BadRequest();
+            }
+            var store = await _context.Stores.Where(s => s.Id == id)
+                                                .Include(s => s.Sales)
+                                                .FirstOrDefaultAsync();//.FindAsync(id);
+            if (store == null) {
                 return NotFound();
             }
 
-            _context.Stores.Remove(store);
-            await _context.SaveChangesAsync();
+            if (store.Sales.Count > 0) {
+                return StatusCode(403, "Cannot delete store with existing sales. Delete the sales associated with this store first");
+            }
 
-            return NoContent();
+            _context.Stores.Remove(store);
+            try {
+                await _context.SaveChangesAsync();
+                return NoContent();
+            }
+            catch (Exception ex) {
+                return StatusCode(500, ex.Message);
+            }
+
         }
 
         private bool StoreExists(int id)

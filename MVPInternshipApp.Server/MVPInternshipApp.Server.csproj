@@ -7,6 +7,7 @@
     <SpaRoot>..\mvpinternshipapp.client</SpaRoot>
     <SpaProxyLaunchCommand>npm run dev</SpaProxyLaunchCommand>
     <SpaProxyServerUrl>https://localhost:5173</SpaProxyServerUrl>
+    <UserSecretsId>6f9db6db-fac7-4456-b70f-e0d0976198fb</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
